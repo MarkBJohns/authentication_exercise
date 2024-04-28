@@ -78,7 +78,9 @@ def log_in_user():
             session["user_id"] = user.username
             return redirect(url_for('show_user', username=session["user_id"]))
         else:
-            render_template('login.html', form=form)
+            form.password.errors = ["Invalid username or password"]
+    
+    return render_template('login.html', form=form)
     
 @app.route('/logout')
 def logout():
@@ -86,7 +88,7 @@ def logout():
     return redirect('/')
             
 #   ==============================================================
-#       SECRET
+#       HANDLE USER DATA
 #   ==============================================================
 
 @app.route('/users/<string:username>')
@@ -96,6 +98,15 @@ def show_user(username):
         return render_template('user.html', user=user)
     else:
         abort(403)
+        
+@app.route('/users/<string:username>/delete')
+def delete_user(username):
+    if "user_id" in session and session["user_id"] == username:
+        user = User.query.filter_by(username=username).first()
+        db.session.delete(user)
+        db.session.commit()
+        session.pop("user_id", None)
+        return redirect('/')
 
 #   --------------------------------------------------------------
 #   PART FOUR

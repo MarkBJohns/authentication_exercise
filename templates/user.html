@@ -12,4 +12,12 @@
     <li>{{user.email}}</li>
 </ul>
 
+<a href="users/{{user.username}}/feedback/add">
+    <button>Add Feedback</button>
+</a>
+
+<a href="/users/{{user.username}}/delete">
+    <button>Delete User</button>
+</a>
+
 {% endblock %}
