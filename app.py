@@ -1,6 +1,6 @@
 from flask import Flask, session, redirect, render_template, url_for, abort
-from models import db, connect_db, User
-from forms import AddUser, LoginUser
+from models import db, connect_db, User, Feedback
+from forms import AddUser, LoginUser, AddFeedback
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///users_db'
@@ -13,7 +13,11 @@ with app.app_context():
     
 @app.shell_context_processor
 def make_shell_context():
-    return {'app': app, 'db': db, 'User': User, 'AddUser': AddUser}
+    if "user_id" in session:
+        user = User.query.filter_by(username=session["user_id"]).first()
+    else:
+        user = None
+    return {'app': app, 'db': db, 'User': User, 'AddUser': AddUser, 'user': user}
 
 #   ==============================================================
 #       HOME PAGE
@@ -107,6 +111,62 @@ def delete_user(username):
         db.session.commit()
         session.pop("user_id", None)
         return redirect('/')
+    
+#   ==============================================================
+#       HANDLE FEEDBACK
+#   ==============================================================
+
+@app.route('/users/<string:username>/feedback/add')
+def show_feedback_form(username):
+    if "user_id" in session and session["user_id"] == username:
+        user = User.query.filter_by(username=username).first()
+        form = AddFeedback()
+        return render_template('add_feedback.html', form=form, user=user)
+    else:
+        return redirect('/')
+    
+@app.route('/users/<string:username>/feedback/add', methods=['POST'])
+def create_feedback(username):
+    if "user_id" in session and session["user_id"] == username:
+        user = User.query.filter_by(username=username).first()
+        form = AddFeedback()
+        
+        if form.validate_on_submit():
+            title = form.title.data
+            content = form.content.data
+            f_user = session["user_id"]
+            
+        fb = Feedback(title=title, content=content, username=f_user)
+        db.session.add(fb)
+        db.session.commit()
+        return redirect(f'/users/{username}')
+    else:
+        return redirect('/')
+    
+@app.route('/feedback/<int:f_id>/update')
+def show_update_feedback_form(f_id):
+    fb = Feedback.query.filter_by(id=f_id).first()
+    form = AddFeedback(obj=fb)
+    return render_template('update_feedback.html', form=form, fb=fb)
+
+@app.route('/feeback/<int:f_id>/update', methods=['POST'])
+def update_feedback(f_id):
+    fb = Feedback.query.filter_by(id=f_id).first()
+    form = AddFeedback(obj=fb)
+    if form.validate_on_submit():
+        if "user_id" in session and fb.user.username == session["user_id"]:
+            fb.title = form.title.data
+            fb.content = form.content.data
+            fb.username = session["user_id"]
+            
+            db.session.add(fb)
+            db.session.commit()
+            return redirect(f'/users/{session["user_id"]}')
+        else:
+            abort(403)
+    
+    else:
+        return render_template('update_feedback.html', form=form)
 
 #   --------------------------------------------------------------
 #   PART FOUR

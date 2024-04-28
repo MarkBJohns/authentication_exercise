@@ -18,6 +18,7 @@ class User(db.Model):
     email = db.Column(db.String(50), nullable=False)
     first_name = db.Column(db.String(30), nullable=False)
     last_name = db.Column(db.String(30), nullable=False)
+    feedback = db.relationship("Feedback", backref="user", cascade='all, delete-orphan')
     
     @classmethod
     def register(cls, name, pwd, email, first, last):
@@ -42,6 +43,7 @@ class User(db.Model):
             return user 
         else:
             return False
+        
         
 class Feedback(db.Model):
     '''Feedback on particular users'''

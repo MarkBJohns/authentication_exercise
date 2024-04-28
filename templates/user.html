@@ -12,7 +12,14 @@
     <li>{{user.email}}</li>
 </ul>
 
-<a href="users/{{user.username}}/feedback/add">
+<h2>Feedback</h2>
+<ul>
+    {% for fb in user.feedback %}
+    <li><a href="/feedback/{{fb.id}}/update">{{fb.title}}</a></li>
+    {% endfor %}
+</ul>
+
+<a href="/users/{{user.username}}/feedback/add">
     <button>Add Feedback</button>
 </a>
 

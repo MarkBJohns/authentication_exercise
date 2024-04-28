@@ -50,7 +50,7 @@ class AddFeedback(FlaskForm):
         "Title",
         validators=[
             DataRequired(message="title is required"),
-            Length(max=100)]),
+            Length(max=100)])
     content = TextAreaField(
         "Content",
         validators=[
