@@ -1,4 +1,4 @@
-from flask import Flask, session, redirect, render_template
+from flask import Flask, session, redirect, render_template, url_for, abort
 from models import db, connect_db, User
 from forms import AddUser, LoginUser
 
@@ -51,7 +51,7 @@ def create_user():
         db.session.add(user)
         db.session.commit()
         
-        return redirect('/secret')
+        return redirect(url_for('show_user', username=session["user_id"]))
     else:
         return render_template('register.html', form=form)
     
@@ -76,7 +76,7 @@ def log_in_user():
         
         if user:
             session["user_id"] = user.username
-            return redirect('/secret')
+            return redirect(url_for('show_user', username=session["user_id"]))
         else:
             render_template('login.html', form=form)
     
@@ -89,17 +89,23 @@ def logout():
 #       SECRET
 #   ==============================================================
 
-
+@app.route('/users/<string:username>')
+def show_user(username):
+    if "user_id" in session and username == session["user_id"]:
+        user = User.query.filter_by(username=username).first()
+        return render_template('user.html', user=user)
+    else:
+        abort(403)
 
 #   --------------------------------------------------------------
 #   PART FOUR
 #   --------------------------------------------------------------
 
-@app.route('/secret')
-def secret_route():
-    if "user_id" in session:
-        return "You made it!"
-    else:
-        return redirect('/')
+# @app.route('/secret')
+# def secret_route():
+#     if "user_id" in session:
+#         return "You made it!"
+#     else:
+#         return redirect('/')
 
 #   --------------------------------------------------------------
