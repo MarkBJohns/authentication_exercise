@@ -179,9 +179,12 @@ def update_feedback(f_id):
 @app.route('/feedback/<int:f_id>/delete')
 def delete_feedback(f_id):
     fb = Feedback.query.filter_by(id=f_id).first()
-    db.session.delete(fb)
-    db.session.commit()
-    return redirect(f'/users/{session["user_id"]}')
+    if fb.username == session["user_id"]:
+        db.session.delete(fb)
+        db.session.commit()
+        return redirect(f'/users/{session["user_id"]}')
+    else:
+        return redirect(f'/feedback/{fb.id}/update')
 
 #   --------------------------------------------------------------
 #   PART FOUR
