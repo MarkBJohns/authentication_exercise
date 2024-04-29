@@ -25,8 +25,11 @@ def make_shell_context():
 
 @app.route('/')
 def homepage():
-    return redirect('/register')
-
+    if "user_id" in session:
+        return redirect(url_for('show_user', username=session["user_id"]))
+    else:
+        return redirect('/register')
+    
 #   ==============================================================
 #       REGISTRATION
 #   ==============================================================
@@ -99,7 +102,10 @@ def logout():
 def show_user(username):
     if "user_id" in session and username == session["user_id"]:
         user = User.query.filter_by(username=username).first()
-        return render_template('user.html', user=user)
+        if user:
+            return render_template('user.html', user=user)
+        else:
+            abort(403)
     else:
         abort(403)
         
@@ -128,7 +134,6 @@ def show_feedback_form(username):
 @app.route('/users/<string:username>/feedback/add', methods=['POST'])
 def create_feedback(username):
     if "user_id" in session and session["user_id"] == username:
-        user = User.query.filter_by(username=username).first()
         form = AddFeedback()
         
         if form.validate_on_submit():
@@ -146,8 +151,11 @@ def create_feedback(username):
 @app.route('/feedback/<int:f_id>/update')
 def show_update_feedback_form(f_id):
     fb = Feedback.query.filter_by(id=f_id).first()
-    form = AddFeedback(obj=fb)
-    return render_template('update_feedback.html', form=form, fb=fb)
+    if fb:
+        form = AddFeedback(obj=fb)
+        return render_template('update_feedback.html', form=form, fb=fb)
+    else:
+        abort(403)
 
 @app.route('/feeback/<int:f_id>/update', methods=['POST'])
 def update_feedback(f_id):
@@ -167,6 +175,13 @@ def update_feedback(f_id):
     
     else:
         return render_template('update_feedback.html', form=form)
+    
+@app.route('/feedback/<int:f_id>/delete')
+def delete_feedback(f_id):
+    fb = Feedback.query.filter_by(id=f_id).first()
+    db.session.delete(fb)
+    db.session.commit()
+    return redirect(f'/users/{session["user_id"]}')
 
 #   --------------------------------------------------------------
 #   PART FOUR

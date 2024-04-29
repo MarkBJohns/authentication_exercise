@@ -8,11 +8,16 @@
 </head>
 <body>
     <nav>
+        {% if user is defined and "user_id" in session and user.username == session["user_id"] %}
+        <h4>Hello {{session["user_id"]}}</h4>
+        {% endif %}
         <p>
             <a href="/">Home |</a>
+            {% if "user_id" not in session %}
             <a href="/register">Sign Up |</a>
             <a href="/login">Log in |</a>
-            {% if "user_id" in session %}
+            {% endif %}
+            {% if user is defined and "user_id" in session and user.username == session["user_id"] %}
             <a href="/users/{{session['user_id']}}/feedback/add">Add Feedback |</a>
             <a href="/logout">Logout</a>
             {% endif %}
